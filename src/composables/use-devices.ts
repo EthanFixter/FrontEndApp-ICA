@@ -1,63 +1,63 @@
 import { inject, ref, type Ref } from 'vue';
-import { REVIEWS_KEY, type Reviews } from '../config/appServices';
-import type { Review } from '../app/review-service';
-import type { AddReviewCommand } from '../app/add-review';
+import { DEVICES_KEY, type Devices } from '../config/appServices';
+import type { Device } from '../app/device-service';
+import type { AddDeviceCommand } from '../app/add-device';
 
-export type UseReviews = {
+export type UseDevices = {
   // state
-  readonly reviews: Ref<readonly Review[]>;
+  readonly devices: Ref<readonly Device[]>;
   readonly totalCount: Ref<number>;
   readonly loading: Ref<boolean>;
   readonly adding: Ref<boolean>;
   readonly error: Ref<string | null>;
   // actions
-  fetchReviews: () => Promise<void>;
-  addReview: (command: AddReviewCommand) => Promise<void>;
+  fetchDevices: () => Promise<void>;
+  addDevice: (command: AddDeviceCommand) => Promise<void>;
 };
 
-export function useReviews(): UseReviews {
-  const uses = inject<Reviews>(REVIEWS_KEY);
-  if (!uses) throw new Error('Reviews not provided');
+export function useDevices(): UseDevices {
+  const uses = inject<Devices>(DEVICES_KEY);
+  if (!uses) throw new Error('Devices not provided');
 
-  const reviews = ref<readonly Review[]>([]);
+  const devices = ref<readonly Device[]>([]);
   const totalCount = ref(0);
   const loading = ref(false);
   const adding = ref(false);
   const error = ref<string | null>(null);
 
-  const fetchReviews = async (): Promise<void> => {
+  const fetchDevices = async (): Promise<void> => {
     if (loading.value) return;
     loading.value = true;
     error.value = null;
     try {
-      const result = await uses.listReviews();
+      const result = await uses.listDevices();
       if (result.success) {
-        reviews.value = result.reviews;
+        devices.value = result.devices;
         totalCount.value = result.totalCount;
       } else {
         error.value = result.errors.join('; ');
-        reviews.value = [];
+        devices.value = [];
         totalCount.value = 0;
       }
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e);
-      reviews.value = [];
+      devices.value = [];
       totalCount.value = 0;
     } finally {
       loading.value = false;
     }
   };
 
-  const add = async (command: AddReviewCommand): Promise<void> => {
+  const add = async (command: AddDeviceCommand): Promise<void> => {
     if (adding.value) return;
     adding.value = true;
     error.value = null;
     try {
-      const result = await uses.addReview(command);
+      const result = await uses.addDevice(command);
       if (result.success) {
-        // Prepend the new review for a "newest first" UI; keep immutable array for safety
-        reviews.value = [result.review, ...reviews.value];
-        totalCount.value = Math.max(totalCount.value + 1, reviews.value.length);
+        // Prepend the new device for a "newest first" UI; keep immutable array for safety
+        devices.value = [result.device, ...devices.value];
+        totalCount.value = Math.max(totalCount.value + 1, devices.value.length);
       } else {
         error.value = result.errors.join('; ');
       }
@@ -69,12 +69,12 @@ export function useReviews(): UseReviews {
   };
 
   return {
-    reviews,
+    devices,
     totalCount,
     loading,
     adding,
     error,
-    fetchReviews,
-    addReview: add,
+    fetchDevices,
+    addDevice: add,
   };
 }

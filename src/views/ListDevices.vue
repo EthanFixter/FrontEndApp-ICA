@@ -1,22 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useReviews } from '@/composables/use-reviews';
-import ReviewCard from '@/components/ReviewCard.vue';
-import AddReviewForm from '@/components/AddReviewForm.vue';
-import type { AddReviewCommand } from '@/app/add-review';
+import { useDevices } from '@/composables/use-devices';
+import DeviceCard from '@/components/DeviceCard.vue';
+import AddDeviceForm from '@/components/AddDeviceForm.vue';
+import type { AddDeviceCommand } from '@/app/add-device';
 
-const {
-  reviews,
-  totalCount,
-  loading,
-  adding,
-  error,
-  fetchReviews,
-  addReview,
-} = useReviews();
+const { devices, totalCount, loading, adding, error, fetchDevices, addDevice } =
+  useDevices();
 
 const showForm = ref(false);
-const formRef = ref<InstanceType<typeof AddReviewForm> | null>(null);
+const formRef = ref<InstanceType<typeof AddDeviceForm> | null>(null);
 const successMessage = ref<string | null>(null);
 
 const handleToggleForm = () => {
@@ -27,12 +20,12 @@ const handleToggleForm = () => {
   }
 };
 
-const handleSubmit = async (command: AddReviewCommand) => {
+const handleSubmit = async (command: AddDeviceCommand) => {
   successMessage.value = null;
-  await addReview(command);
+  await addDevice(command);
 
   if (!error.value) {
-    successMessage.value = 'Review added successfully!';
+    successMessage.value = 'Device added successfully!';
     showForm.value = false;
     if (formRef.value) {
       formRef.value.resetForm();
@@ -54,20 +47,20 @@ const handleCancel = () => {
 
 onMounted(() => {
   // Initial load
-  fetchReviews();
+  fetchDevices();
 });
 </script>
 
 <template>
   <section class="page">
     <header class="page__header">
-      <h1>Reviews</h1>
+      <h1>Devices</h1>
       <button
         @click="handleToggleForm"
         class="btn btn--add"
         :disabled="loading"
       >
-        {{ showForm ? 'Cancel' : '+ Add Review' }}
+        {{ showForm ? 'Cancel' : '+ Add Device' }}
       </button>
     </header>
 
@@ -81,8 +74,8 @@ onMounted(() => {
       {{ successMessage }}
     </div>
 
-    <!-- Add Review Form -->
-    <AddReviewForm
+    <!-- Add Device Form -->
+    <AddDeviceForm
       v-if="showForm"
       ref="formRef"
       :is-submitting="adding"
@@ -94,12 +87,12 @@ onMounted(() => {
     <div v-if="loading" class="state">Loading…</div>
     <div v-else-if="error" class="state state--error">{{ error }}</div>
     <div v-else>
-      <ul v-if="reviews.length" class="grid" role="list">
-        <li v-for="r in reviews" :key="r.id" class="grid__item">
-          <ReviewCard :review="r" />
+      <ul v-if="devices.length" class="grid" role="list">
+        <li v-for="d in devices" :key="d.id" class="grid__item">
+          <DeviceCard :device="d" />
         </li>
       </ul>
-      <p v-else class="state">No reviews yet. Be the first!</p>
+      <p v-else class="state">No devices yet. Be the first!</p>
     </div>
   </section>
 </template>

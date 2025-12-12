@@ -1,43 +1,41 @@
 import type {
-  Review,
-  ReviewService,
-  AddReviewInput,
-  AddReviewOutput,
-  ListReviewsOutput,
-} from '../app/review-service';
+  Device,
+  DeviceService,
+  AddDeviceInput,
+  AddDeviceOutput,
+  ListDevicesOutput,
+} from '../app/device-service';
 
-type ReviewDto = {
+type DeviceDto = {
   id: string;
-  rating: number;
-  title: string;
-  comment: string;
-  createdAt: string;
+  name: string;
+  manufacturer: string;
+  model: string;
 };
 
-type ListReviewsResponseDto =
-  | { reviews?: ReviewDto[]; totalCount?: number; errors?: string[] }
-  | ReviewDto[];
+type ListDevicesResponseDto =
+  | { devices?: DeviceDto[]; totalCount?: number; errors?: string[] }
+  | DeviceDto[];
 
-type AddReviewResponseDto = { review?: ReviewDto; errors?: string[] };
+type AddDeviceResponseDto = { device?: DeviceDto; errors?: string[] };
 
 export type HttpClient = typeof fetch;
 
-export type HttpReviewServiceOptions = {
+export type HttpDeviceServiceOptions = {
   readonly baseUrl?: string;
   readonly http?: HttpClient;
   readonly headers?: Record<string, string>;
 };
 
-export class HttpReviewService implements ReviewService {
+export class HttpDeviceService implements DeviceService {
   private readonly baseUrl?: string;
   private readonly http: HttpClient;
   private readonly headers: Record<string, string>;
 
-  constructor(options: HttpReviewServiceOptions = {}) {
+  constructor(options: HttpDeviceServiceOptions = {}) {
     this.baseUrl = options.baseUrl
       ? options.baseUrl.replace(/\/$/, '')
       : undefined;
-    // Ensure fetch is properly bound to a global target to avoid illegal invocation errors
     const rawHttp: HttpClient | undefined =
       options.http ?? (typeof fetch !== 'undefined' ? fetch : undefined);
     if (!rawHttp) {
@@ -48,13 +46,13 @@ export class HttpReviewService implements ReviewService {
     this.headers = { ...(options.headers ?? {}) };
   }
 
-  async listReviews(): Promise<ListReviewsOutput> {
-    const res = await this.http(this.url('/reviews'), {
+  async listDevices(): Promise<ListDevicesOutput> {
+    const res = await this.http(this.url('/devices'), {
       method: 'GET',
       headers: this.mergeHeaders({ Accept: 'application/json' }),
     });
     await this.ensureOk(res);
-    const body = (await this.parseJson(res)) as ListReviewsResponseDto;
+    const body = (await this.parseJson(res)) as ListDevicesResponseDto;
 
     const errors = Array.isArray(body)
       ? undefined
@@ -63,23 +61,23 @@ export class HttpReviewService implements ReviewService {
         : undefined;
     if (errors && errors.length) throw new Error(errors.join('; '));
 
-    const reviews = Array.isArray(body)
+    const devices = Array.isArray(body)
       ? body
-      : Array.isArray(body.reviews)
-        ? body.reviews
+      : Array.isArray(body.devices)
+        ? body.devices
         : [];
-    const mapped = reviews.map(toDomainReview);
+    const mapped = devices.map(toDomainDevice);
     const totalCount = Array.isArray(body)
       ? mapped.length
       : typeof body.totalCount === 'number'
         ? body.totalCount
         : mapped.length;
-    return { reviews: mapped, totalCount };
+    return { devices: mapped, totalCount };
   }
 
-  async addReview(input: AddReviewInput): Promise<AddReviewOutput> {
-    const dto = toAddReviewRequestDto(input);
-    const res = await this.http(this.url('/reviews'), {
+  async addDevice(input: AddDeviceInput): Promise<AddDeviceOutput> {
+    const dto = toAddDeviceRequestDto(input);
+    const res = await this.http(this.url('/devices'), {
       method: 'POST',
       headers: this.mergeHeaders({
         Accept: 'application/json',
@@ -88,16 +86,16 @@ export class HttpReviewService implements ReviewService {
       body: JSON.stringify(dto),
     });
     await this.ensureOk(res);
-    const body = (await this.parseJson(res)) as AddReviewResponseDto;
+    const body = (await this.parseJson(res)) as AddDeviceResponseDto;
     if (Array.isArray(body.errors) && body.errors.length) {
       throw new Error(body.errors.join('; '));
     }
-    const reviewDto = body.review;
-    if (!reviewDto || typeof reviewDto !== 'object') {
-      throw new Error('Malformed add review response');
+    const deviceDto = body.device;
+    if (!deviceDto || typeof deviceDto !== 'object') {
+      throw new Error('Malformed add device response');
     }
-    const review = toDomainReview(reviewDto);
-    return { review };
+    const device = toDomainDevice(deviceDto);
+    return { device };
   }
 
   // helpers
@@ -142,35 +140,26 @@ export class HttpReviewService implements ReviewService {
   }
 }
 
-// Infra-level request DTO (decoupled from app AddReviewInput)
-type AddReviewRequestDto = {
-  rating: number;
-  title: string;
-  comment: string;
+// Infra-level request DTO (decoupled from app AddDeviceInput)
+type AddDeviceRequestDto = {
+  name: string;
+  manufacturer: string;
+  model: string;
 };
 
-function toAddReviewRequestDto(input: AddReviewInput): AddReviewRequestDto {
+function toAddDeviceRequestDto(input: AddDeviceInput): AddDeviceRequestDto {
   return {
-    rating: input.rating,
-    title: input.title,
-    comment: input.comment,
+    name: input.name,
+    manufacturer: input.manufacturer,
+    model: input.model,
   };
 }
 
-function toDomainReview(r: ReviewDto): Review {
+function toDomainDevice(d: DeviceDto): Device {
   return {
-    id: r.id,
-    rating: r.rating,
-    title: r.title,
-    comment: r.comment,
-    createdAt: toDate(r.createdAt),
+    id: d.id,
+    name: d.name,
+    manufacturer: d.manufacturer,
+    model: d.model,
   };
-}
-
-function toDate(v: string): Date {
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) {
-    throw new Error('Invalid createdAt date');
-  }
-  return d;
 }

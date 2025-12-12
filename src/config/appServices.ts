@@ -1,73 +1,73 @@
-import type { ReviewService } from '../app/review-service';
-import { listReviews } from '../app/list-reviews';
-import type { ListReviewsResult } from '../app/list-reviews';
-import { addReview } from '../app/add-review';
-import type { AddReviewCommand, AddReviewResult } from '../app/add-review';
-import { FakeReviewService } from '../infra/fake-review-service';
-import { HttpReviewService } from '../infra/http-review-service';
-import { seedReviews } from '../seed/reviews';
+import type { DeviceService } from '../app/device-service';
+import { listDevices } from '../app/list-devices';
+import type { ListDevicesResult } from '../app/list-devices';
+import { addDevice } from '../app/add-device';
+import type { AddDeviceCommand, AddDeviceResult } from '../app/add-device';
+import { FakeDeviceService } from '../infra/fake-device-service';
+import { HttpDeviceService } from '../infra/http-device-service';
+import { seedDevices } from '../seed/devices';
 
-// Lazy singleton for the app's ReviewService implementation.
-let _reviewService: ReviewService | undefined;
+// Lazy singleton for the app's DeviceService implementation.
+let _deviceService: DeviceService | undefined;
 
 // Resolve which implementation to use based on env.
-// - VITE_REVIEWS_SERVICE: 'fake' | 'http' (optional)
-// - VITE_REVIEWS_BASE_URL: string (optional)
+// - VITE_DEVICES_SERVICE: 'fake' | 'http' (optional)
+// - VITE_DEVICES_BASE_URL: string (optional)
 // - VITE_USE_SEED_DATA: 'true' | 'false' (optional, defaults to false)
-function createReviewServiceFromEnv(): ReviewService {
+function createDeviceServiceFromEnv(): DeviceService {
   const env = import.meta.env as Record<string, string | undefined>;
-  const kind = (env.VITE_REVIEWS_SERVICE || '').toLowerCase();
-  const baseUrl = env.VITE_REVIEWS_BASE_URL;
+  const kind = (env.VITE_DEVICES_SERVICE || '').toLowerCase();
+  const baseUrl = env.VITE_DEVICES_BASE_URL;
   const useSeedData = env.VITE_USE_SEED_DATA === 'true';
 
   if (kind === 'fake') {
-    return new FakeReviewService(useSeedData ? seedReviews : []);
+    return new FakeDeviceService(useSeedData ? seedDevices : []);
   }
-  if (kind === 'http') return new HttpReviewService({ baseUrl });
+  if (kind === 'http') return new HttpDeviceService({ baseUrl });
 
   // Auto-detect: if a base URL is provided, prefer HTTP; otherwise use fake.
-  if (baseUrl) return new HttpReviewService({ baseUrl });
-  return new FakeReviewService(useSeedData ? seedReviews : []);
+  if (baseUrl) return new HttpDeviceService({ baseUrl });
+  return new FakeDeviceService(useSeedData ? seedDevices : []);
 }
 
-export function getReviewService(): ReviewService {
-  if (!_reviewService) {
-    _reviewService = createReviewServiceFromEnv();
+export function getDeviceService(): DeviceService {
+  if (!_deviceService) {
+    _deviceService = createDeviceServiceFromEnv();
   }
-  return _reviewService;
+  return _deviceService;
 }
 
 // Optional: allow overriding in tests or specialized bootstraps
-export function setReviewService(service: ReviewService): void {
-  _reviewService = service;
+export function setDeviceService(service: DeviceService): void {
+  _deviceService = service;
 }
 
 // Factories that return use case functions bound to the resolved service
-export function makeListReviews(): () => Promise<ListReviewsResult> {
-  const service = getReviewService();
-  return () => listReviews(service);
+export function makeListDevices(): () => Promise<ListDevicesResult> {
+  const service = getDeviceService();
+  return () => listDevices(service);
 }
 
-export function makeAddReview(): (
-  command: AddReviewCommand,
-) => Promise<AddReviewResult> {
-  const service = getReviewService();
-  return (command: AddReviewCommand) => addReview(service, command);
+export function makeAddDevice(): (
+  command: AddDeviceCommand,
+) => Promise<AddDeviceResult> {
+  const service = getDeviceService();
+  return (command: AddDeviceCommand) => addDevice(service, command);
 }
 
-// Public contract returned by buildReviewUses
-export type Reviews = {
-  listReviews: () => Promise<ListReviewsResult>;
-  addReview: (command: AddReviewCommand) => Promise<AddReviewResult>;
+// Public contract returned by buildDeviceUses
+export type Devices = {
+  listDevices: () => Promise<ListDevicesResult>;
+  addDevice: (command: AddDeviceCommand) => Promise<AddDeviceResult>;
 };
 
 // Compound factory returning both bound use case functions
-export function buildReviewUses(): Reviews {
+export function buildDeviceUses(): Devices {
   return {
-    listReviews: makeListReviews(),
-    addReview: makeAddReview(),
+    listDevices: makeListDevices(),
+    addDevice: makeAddDevice(),
   };
 }
 
 // Centralized DI key used by provider and composable
-export const REVIEWS_KEY = 'Reviews' as const;
+export const DEVICES_KEY = 'Devices' as const;
