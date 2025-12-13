@@ -9,8 +9,8 @@ import type {
 type DeviceDto = {
   id: string;
   name: string;
-  manufacturer: string;
-  model: string;
+  description: string;
+  totalQuantity: number;
 };
 
 type ListDevicesResponseDto =
@@ -143,15 +143,15 @@ export class HttpDeviceService implements DeviceService {
 // Infra-level request DTO (decoupled from app AddDeviceInput)
 type AddDeviceRequestDto = {
   name: string;
-  manufacturer: string;
-  model: string;
+  description: string;
+  totalQuantity: number;
 };
 
 function toAddDeviceRequestDto(input: AddDeviceInput): AddDeviceRequestDto {
   return {
     name: input.name,
-    manufacturer: input.manufacturer,
-    model: input.model,
+    description: input.description,
+    totalQuantity: input.totalQuantity,
   };
 }
 
@@ -159,7 +159,7 @@ function toDomainDevice(d: DeviceDto): Device {
   return {
     id: d.id,
     name: d.name,
-    manufacturer: d.manufacturer,
-    model: d.model,
+    description: d.description,
+    totalQuantity: d.totalQuantity,
   };
 }

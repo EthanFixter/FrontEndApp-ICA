@@ -1,8 +1,8 @@
 export type Device = {
   readonly id: string; // Unique identifier
-  readonly name: string; // Device name (e.g., "iPhone 15 Pro")
-  readonly manufacturer: string; // Brand or maker (e.g., "Apple")
-  readonly model: string; // Model number or code
+  readonly name: string; // Device name (e.g., "iPad")
+  readonly description: string; // Description of the device
+  readonly totalQuantity: number; // Inventory count
 };
 
 export type ListDevicesOutput = {
@@ -12,8 +12,8 @@ export type ListDevicesOutput = {
 
 export type AddDeviceInput = {
   readonly name: string;
-  readonly manufacturer: string;
-  readonly model: string;
+  readonly description: string;
+  readonly totalQuantity: number;
 };
 
 export type AddDeviceOutput = {

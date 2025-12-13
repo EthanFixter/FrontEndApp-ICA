@@ -10,12 +10,12 @@ const props = defineProps<{
   <article class="card">
     <header class="card__header">
       <div class="card__title">{{ props.device.name }}</div>
-      <div class="card__meta">
-        <span class="manufacturer">{{ props.device.manufacturer }}</span>
-        <span class="model">{{ props.device.model }}</span>
-      </div>
+      <p class="card__description">{{ props.device.description }}</p>
     </header>
     <footer class="card__footer">
+      <span class="card__quantity"
+        >Available: {{ props.device.totalQuantity }}</span
+      >
       <span class="card__id">#{{ props.device.id }}</span>
     </footer>
   </article>
@@ -39,15 +39,18 @@ const props = defineProps<{
   font-weight: 600;
   font-size: 1.05rem;
 }
-.card__meta {
+.card__description {
   font-size: 0.9rem;
-  color: #6b7280; /* gray-500 */
+  color: #374151; /* gray-700 */
 }
 .card__footer {
   display: flex;
   gap: 0.75rem;
   color: #6b7280; /* gray-500 */
   font-size: 0.85rem;
+}
+.card__quantity {
+  font-weight: 500;
 }
 .card__id {
   margin-left: auto;

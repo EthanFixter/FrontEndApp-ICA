@@ -7,8 +7,8 @@ export type AddDeviceResult =
 // Command used by the application layer (decoupled from service DTOs)
 export type AddDeviceCommand = {
   readonly name: string;
-  readonly manufacturer: string;
-  readonly model: string;
+  readonly description: string;
+  readonly totalQuantity: number;
 };
 
 export type AddDeviceUseCase = (
@@ -21,8 +21,8 @@ export const addDevice: AddDeviceUseCase = async (service, command) => {
     // Map command -> service input explicitly, keeping layers decoupled
     const input: AddDeviceInput = {
       name: command.name,
-      manufacturer: command.manufacturer,
-      model: command.model,
+      description: command.description,
+      totalQuantity: command.totalQuantity,
     };
     const { device } = await service.addDevice(input);
     return { success: true, device };

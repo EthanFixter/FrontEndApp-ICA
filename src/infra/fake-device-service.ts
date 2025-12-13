@@ -30,8 +30,8 @@ export class FakeDeviceService implements DeviceService {
     const device: Device = {
       id: this.nextId(),
       name: input.name,
-      manufacturer: input.manufacturer,
-      model: input.model,
+      description: input.description,
+      totalQuantity: input.totalQuantity,
     };
     // Newest first
     this.items.unshift(device);

@@ -14,15 +14,15 @@ const props = defineProps<{
 
 const form = reactive({
   name: '',
-  manufacturer: '',
-  model: '',
+  description: '',
+  totalQuantity: 0,
 });
 
 const validationErrors = ref<Record<string, string>>({});
 const touched = reactive({
   name: false,
-  manufacturer: false,
-  model: false,
+  description: false,
+  totalQuantity: false,
 });
 
 const validate = (): boolean => {
@@ -34,12 +34,14 @@ const validate = (): boolean => {
     errors.name = 'Name must be at least 3 characters';
   }
 
-  if (!form.manufacturer.trim()) {
-    errors.manufacturer = 'Manufacturer is required';
+  if (!form.description.trim()) {
+    errors.description = 'Description is required';
+  } else if (form.description.trim().length < 5) {
+    errors.description = 'Description must be at least 5 characters';
   }
 
-  if (!form.model.trim()) {
-    errors.model = 'Model is required';
+  if (form.totalQuantity <= 0) {
+    errors.totalQuantity = 'Total quantity must be greater than 0';
   }
 
   validationErrors.value = errors;
@@ -49,22 +51,22 @@ const validate = (): boolean => {
 const isValid = computed(() => {
   return (
     form.name.trim().length >= 3 &&
-    form.manufacturer.trim().length > 0 &&
-    form.model.trim().length > 0
+    form.description.trim().length >= 5 &&
+    form.totalQuantity > 0
   );
 });
 
 const handleSubmit = () => {
   touched.name = true;
-  touched.manufacturer = true;
-  touched.model = true;
+  touched.description = true;
+  touched.totalQuantity = true;
 
   if (!validate()) return;
 
   emit('submit', {
     name: form.name.trim(),
-    manufacturer: form.manufacturer.trim(),
-    model: form.model.trim(),
+    description: form.description.trim(),
+    totalQuantity: form.totalQuantity,
   });
 };
 
@@ -74,12 +76,12 @@ const handleCancel = () => {
 
 const resetForm = () => {
   form.name = '';
-  form.manufacturer = '';
-  form.model = '';
+  form.description = '';
+  form.totalQuantity = 0;
   validationErrors.value = {};
   touched.name = false;
-  touched.manufacturer = false;
-  touched.model = false;
+  touched.description = false;
+  touched.totalQuantity = false;
 };
 
 const markTouched = (field: keyof typeof touched) => {
@@ -103,7 +105,7 @@ defineExpose({ resetForm });
           type="text"
           v-model="form.name"
           @blur="markTouched('name')"
-          placeholder="e.g. iPhone 15 Pro"
+          placeholder="e.g. iPad"
           :disabled="isSubmitting"
         />
         <span v-if="touched.name && validationErrors.name" class="error">
@@ -111,38 +113,41 @@ defineExpose({ resetForm });
         </span>
       </div>
 
-      <!-- Manufacturer -->
+      <!-- Description -->
       <div class="form-group">
-        <label for="manufacturer">Manufacturer</label>
-        <input
-          id="manufacturer"
-          type="text"
-          v-model="form.manufacturer"
-          @blur="markTouched('manufacturer')"
-          placeholder="e.g. Apple"
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          v-model="form.description"
+          @blur="markTouched('description')"
+          placeholder="e.g. iPad for students"
+          rows="3"
           :disabled="isSubmitting"
-        />
+        ></textarea>
         <span
-          v-if="touched.manufacturer && validationErrors.manufacturer"
+          v-if="touched.description && validationErrors.description"
           class="error"
         >
-          {{ validationErrors.manufacturer }}
+          {{ validationErrors.description }}
         </span>
       </div>
 
-      <!-- Model -->
+      <!-- Total Quantity -->
       <div class="form-group">
-        <label for="model">Model</label>
+        <label for="totalQuantity">Total Quantity</label>
         <input
-          id="model"
-          type="text"
-          v-model="form.model"
-          @blur="markTouched('model')"
-          placeholder="e.g. A3101"
+          id="totalQuantity"
+          type="number"
+          v-model.number="form.totalQuantity"
+          @blur="markTouched('totalQuantity')"
+          min="1"
           :disabled="isSubmitting"
         />
-        <span v-if="touched.model && validationErrors.model" class="error">
-          {{ validationErrors.model }}
+        <span
+          v-if="touched.totalQuantity && validationErrors.totalQuantity"
+          class="error"
+        >
+          {{ validationErrors.totalQuantity }}
         </span>
       </div>
 
