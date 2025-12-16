@@ -4,9 +4,12 @@ import { useDevices } from '@/composables/use-devices';
 import DeviceCard from '@/components/DeviceCard.vue';
 import AddDeviceForm from '@/components/AddDeviceForm.vue';
 import type { AddDeviceCommand } from '@/app/add-device';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const { devices, totalCount, loading, adding, error, fetchDevices, addDevice } =
   useDevices();
+
+const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 
 const showForm = ref(false);
 const formRef = ref<InstanceType<typeof AddDeviceForm> | null>(null);
@@ -22,6 +25,9 @@ const handleToggleForm = () => {
 
 const handleSubmit = async (command: AddDeviceCommand) => {
   successMessage.value = null;
+
+  // Attach token when adding a device
+  const token = await getAccessTokenSilently();
   await addDevice(command);
 
   if (!error.value) {
@@ -30,7 +36,6 @@ const handleSubmit = async (command: AddDeviceCommand) => {
     if (formRef.value) {
       formRef.value.resetForm();
     }
-    // Auto-hide success message after 3 seconds
     setTimeout(() => {
       successMessage.value = null;
     }, 3000);
@@ -46,7 +51,6 @@ const handleCancel = () => {
 };
 
 onMounted(() => {
-  // Initial load
   fetchDevices();
 });
 </script>
@@ -56,6 +60,7 @@ onMounted(() => {
     <header class="page__header">
       <h1>Devices</h1>
       <button
+        v-if="isAuthenticated"
         @click="handleToggleForm"
         class="btn btn--add"
         :disabled="loading"
@@ -69,14 +74,12 @@ onMounted(() => {
       <span v-else>None yet</span>
     </div>
 
-    <!-- Success Message -->
     <div v-if="successMessage" class="success-message">
       {{ successMessage }}
     </div>
 
-    <!-- Add Device Form -->
     <AddDeviceForm
-      v-if="showForm"
+      v-if="showForm && isAuthenticated"
       ref="formRef"
       :is-submitting="adding"
       :error="error"
@@ -89,83 +92,10 @@ onMounted(() => {
     <div v-else>
       <ul v-if="devices.length" class="grid" role="list">
         <li v-for="d in devices" :key="d.id" class="grid__item">
-          <DeviceCard :device="d" />
+          <DeviceCard :device="d" :showDetails="isAuthenticated" />
         </li>
       </ul>
       <p v-else class="state">No devices yet. Be the first!</p>
     </div>
   </section>
 </template>
-
-<style scoped>
-.page {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-.page__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-.page__meta {
-  color: #6b7280; /* gray-500 */
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-}
-
-.btn {
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn--add {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.btn--add:hover:not(:disabled) {
-  background-color: #2563eb;
-}
-
-.success-message {
-  padding: 1rem;
-  background-color: #d1fae5;
-  border: 1px solid #6ee7b7;
-  border-radius: 6px;
-  color: #065f46;
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.grid {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-.grid__item {
-  display: block;
-}
-.state {
-  color: #374151; /* gray-700 */
-}
-.state--error {
-  color: #b91c1c; /* red-700 */
-}
-</style>

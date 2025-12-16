@@ -2,6 +2,8 @@ import { inject, ref, type Ref } from 'vue';
 import { DEVICES_KEY, type Devices } from '../config/appServices';
 import type { Device } from '../app/device-service';
 import type { AddDeviceCommand } from '../app/add-device';
+import { appConfig } from '@/config/appConfig';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 export type UseDevices = {
   // state
@@ -15,9 +17,13 @@ export type UseDevices = {
   addDevice: (command: AddDeviceCommand) => Promise<void>;
 };
 
+const API_BASE = appConfig.apiBaseUrl;
+
 export function useDevices(): UseDevices {
   const uses = inject<Devices>(DEVICES_KEY);
   if (!uses) throw new Error('Devices not provided');
+
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
 
   const devices = ref<readonly Device[]>([]);
   const totalCount = ref(0);
@@ -30,12 +36,36 @@ export function useDevices(): UseDevices {
     loading.value = true;
     error.value = null;
     try {
-      const result = await uses.listDevices();
-      if (result.success) {
-        devices.value = result.devices;
-        totalCount.value = result.totalCount;
+      const url = new URL('api/devices', API_BASE).toString();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+
+      if (isAuthenticated.value) {
+        try {
+          const token = await getAccessTokenSilently();
+          if (token) headers.Authorization = `Bearer ${token}`;
+        } catch {
+          // If token retrieval fails, proceed unauthenticated
+        }
+      }
+
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(
+          `Failed to fetch devices: ${res.status} ${res.statusText}`,
+        );
+      }
+
+      const data = await res.json();
+      console.log('Fetched devices raw:', data);
+
+      // Handle both array and object response shapes
+      if (Array.isArray(data)) {
+        devices.value = data;
+        totalCount.value = data.length;
+      } else if (Array.isArray(data.devices)) {
+        devices.value = data.devices;
+        totalCount.value = data.totalCount ?? data.devices.length;
       } else {
-        error.value = result.errors.join('; ');
         devices.value = [];
         totalCount.value = 0;
       }

@@ -1,28 +1,32 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useAuth0 } from '@auth0/auth0-vue';
+
+const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
+const returnTo = typeof window !== 'undefined' ? window.location.origin : '/';
+
+function handleLogin() {
+  loginWithRedirect({
+    authorizationParams: { prompt: 'login' },
+    appState: { target: '/devices' }, // optional redirect target
+  });
+}
+
+function handleLogout() {
+  logout({
+    logoutParams: { returnTo },
+  });
+}
+</script>
 
 <template>
-  <main>
-    <router-view />
-  </main>
-</template>
+  <nav>
+    <button v-if="!isAuthenticated" @click="handleLogin">Log in</button>
+    <div v-else>
+      <span>{{ user?.email }}</span>
+      <button @click="handleLogout">Log out</button>
+    </div>
+  </nav>
 
-<style scoped>
-main {
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Noto Sans,
-    Ubuntu,
-    Cantarell,
-    Helvetica Neue,
-    Arial,
-    'Apple Color Emoji',
-    'Segoe UI Emoji';
-  color: #111827; /* gray-900 */
-  background: #f9fafb; /* gray-50 */
-  min-height: 100vh;
-}
-</style>
+  <!-- This is where ListDevices.vue will render -->
+  <router-view />
+</template>
