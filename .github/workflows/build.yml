@@ -35,7 +35,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      # 🚨 Temporary step to force failure
-      - name: Force failure
-        run: exit 1
