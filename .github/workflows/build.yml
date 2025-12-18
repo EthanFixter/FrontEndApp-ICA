@@ -35,3 +35,5 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      ##Testing workflow is working correctly again after recent changes
