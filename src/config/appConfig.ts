@@ -1,5 +1,6 @@
 export interface AppConfig {
   apiBaseUrl: string;
+  appInsightsConnectionString?: string;
   auth0: {
     domain: string;
     clientId: string;
@@ -11,6 +12,10 @@ export function loadAppConfig(): AppConfig {
   const apiBaseUrl =
     (import.meta.env.VITE_API_BASE_URL as string) ??
     'http://localhost:7071/api/';
+
+  const appInsightsConnectionString = import.meta.env
+    .VITE_APPINSIGHTS_CONNECTION_STRING as string | undefined;
+
   const domain = (import.meta.env.VITE_AUTH0_DOMAIN as string) ?? '';
   const clientId = (import.meta.env.VITE_AUTH0_CLIENT_ID as string) ?? '';
   const audience =
@@ -18,6 +23,7 @@ export function loadAppConfig(): AppConfig {
 
   return {
     apiBaseUrl,
+    appInsightsConnectionString,
     auth0: { domain, clientId, audience },
   };
 }
