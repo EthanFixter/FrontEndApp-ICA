@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue';
-import type { ReservationService } from '../reservation-service';
-import type { AddReservationCommand } from '../add-reservation';
-import { listReservations } from '../list-reservations';
-import { addReservation } from '../add-reservation';
+import type { ReservationService } from '@/app/reservation-service';
+import type { AddReservationCommand } from '@/app/add-reservation';
+import { listReservations } from '@/app/list-reservations';
+import { addReservation } from '@/app/add-reservation';
 import type { Reservation } from '@/app/reservation-service';
 
 export function useReservations(service: ReservationService) {
@@ -20,7 +20,7 @@ export function useReservations(service: ReservationService) {
     const result = await listReservations(service);
 
     if (result.success) {
-      reservations.value = result.reservations;
+      reservations.value = [...result.reservations];
       totalCount.value = result.totalCount;
     } else {
       error.value = result.errors.join(', ');
