@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useAuth0 } from '@auth0/auth0-vue';
 import type { Reservation } from '../app/reservation-service';
 import { useReservations } from '../composables/use-reservations';
 import { HttpReservationService } from '../infra/http-reservation-service';
+import type { AddReservationCommand } from '../app/add-reservation';
 import ReservationCard from '../components/ReservationCard.vue';
 import AddReservationForm from '../components/AddReservationForm.vue';
-import type { AddReservationCommand } from '../app/add-reservation';
 
-// Create the service instance (HTTP by default)
+const { isAuthenticated } = useAuth0();
+
 const service = new HttpReservationService({
   baseUrl: import.meta.env.VITE_RESERVATIONS_BASE_URL,
 });
 
-// Use the composable
 const {
   reservations,
   totalCount,
@@ -24,18 +25,12 @@ const {
   submit,
 } = useReservations(service);
 
-// Explicitly type reservations to avoid TS "never" errors
-(reservations.value as Reservation[]) = [];
-
-// UI state
 const showAddForm = ref(false);
 
-// Load reservations on mount
 onMounted(() => {
   load();
 });
 
-// Handle form submission
 const handleSubmit = async (command: AddReservationCommand) => {
   await submit(command);
   if (!error.value) {
@@ -43,7 +38,6 @@ const handleSubmit = async (command: AddReservationCommand) => {
   }
 };
 
-// Handle cancel
 const handleCancel = () => {
   showAddForm.value = false;
 };
@@ -52,8 +46,7 @@ const handleCancel = () => {
 <template>
   <section class="reservations-page">
     <header class="page-header">
-      <h1>Reservations</h1>
-
+      <h2>Reservations</h2>
       <button
         class="btn btn-primary"
         @click="showAddForm = !showAddForm"
@@ -63,7 +56,6 @@ const handleCancel = () => {
       </button>
     </header>
 
-    <!-- Add Reservation Form -->
     <div v-if="showAddForm" class="form-container">
       <AddReservationForm
         :isSubmitting="isSubmitting"
@@ -73,30 +65,21 @@ const handleCancel = () => {
       />
     </div>
 
-    <!-- Loading State -->
     <div v-if="isLoading" class="loading">Loading reservations…</div>
-
-    <!-- Error State -->
-    <div v-if="error && !isLoading" class="error">
-      {{ error }}
-    </div>
-
-    <!-- Empty State -->
+    <div v-if="error && !isLoading" class="error">{{ error }}</div>
     <div v-if="!isLoading && !hasReservations" class="empty">
       No reservations found.
     </div>
 
-    <!-- Reservations List -->
     <div v-if="hasReservations" class="reservations-list">
       <ReservationCard
         v-for="r in reservations"
         :key="r.id"
         :reservation="r"
-        :showDetails="true"
+        :showDetails="isAuthenticated"
       />
     </div>
 
-    <!-- Footer -->
     <footer v-if="hasReservations" class="footer">
       Total Reservations: {{ totalCount }}
     </footer>
