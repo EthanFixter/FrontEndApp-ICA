@@ -21,10 +21,12 @@ export const addDevice: AddDeviceUseCase = async (service, command) => {
   try {
     // Map command -> service input explicitly, keeping layers decoupled
     const input: AddDeviceInput = {
+      id: command.id, // ✅ FIXED: ID now included
       name: command.name,
       description: command.description,
       totalQuantity: command.totalQuantity,
     };
+
     const { device } = await service.addDevice(input);
     return { success: true, device };
   } catch (err) {
