@@ -140,15 +140,18 @@ export class HttpDeviceService implements DeviceService {
   }
 }
 
-// Infra-level request DTO (decoupled from app AddDeviceInput)
+// ✅ Updated DTO to include optional id
 type AddDeviceRequestDto = {
+  id?: string;
   name: string;
   description: string;
   totalQuantity: number;
 };
 
+// ✅ Updated mapper to include id if present
 function toAddDeviceRequestDto(input: AddDeviceInput): AddDeviceRequestDto {
   return {
+    id: (input as any).id, // optional, only if provided
     name: input.name,
     description: input.description,
     totalQuantity: input.totalQuantity,
