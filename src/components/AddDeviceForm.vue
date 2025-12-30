@@ -12,7 +12,9 @@ const props = defineProps<{
   error?: string | null;
 }>();
 
+// Added id field
 const form = reactive({
+  id: '',
   name: '',
   description: '',
   totalQuantity: 0,
@@ -20,6 +22,7 @@ const form = reactive({
 
 const validationErrors = ref<Record<string, string>>({});
 const touched = reactive({
+  id: false,
   name: false,
   description: false,
   totalQuantity: false,
@@ -27,6 +30,13 @@ const touched = reactive({
 
 const validate = (): boolean => {
   const errors: Record<string, string> = {};
+
+  // ID validation
+  if (!form.id.trim()) {
+    errors.id = 'ID is required';
+  } else if (form.id.trim().length < 3) {
+    errors.id = 'ID must be at least 3 characters';
+  }
 
   if (!form.name.trim()) {
     errors.name = 'Name is required';
@@ -50,6 +60,7 @@ const validate = (): boolean => {
 
 const isValid = computed(() => {
   return (
+    form.id.trim().length >= 3 &&
     form.name.trim().length >= 3 &&
     form.description.trim().length >= 5 &&
     form.totalQuantity > 0
@@ -57,6 +68,7 @@ const isValid = computed(() => {
 });
 
 const handleSubmit = () => {
+  touched.id = true;
   touched.name = true;
   touched.description = true;
   touched.totalQuantity = true;
@@ -64,6 +76,7 @@ const handleSubmit = () => {
   if (!validate()) return;
 
   emit('submit', {
+    id: form.id.trim(),
     name: form.name.trim(),
     description: form.description.trim(),
     totalQuantity: form.totalQuantity,
@@ -75,10 +88,14 @@ const handleCancel = () => {
 };
 
 const resetForm = () => {
+  form.id = '';
   form.name = '';
   form.description = '';
   form.totalQuantity = 0;
+
   validationErrors.value = {};
+
+  touched.id = false;
   touched.name = false;
   touched.description = false;
   touched.totalQuantity = false;
@@ -97,6 +114,22 @@ defineExpose({ resetForm });
     <h2>Add a Device</h2>
 
     <form @submit.prevent="handleSubmit">
+      <!-- Device ID -->
+      <div class="form-group">
+        <label for="id">Device ID</label>
+        <input
+          id="id"
+          type="text"
+          v-model="form.id"
+          @blur="markTouched('id')"
+          placeholder="e.g. device-001"
+          :disabled="isSubmitting"
+        />
+        <span v-if="touched.id && validationErrors.id" class="error">
+          {{ validationErrors.id }}
+        </span>
+      </div>
+
       <!-- Name -->
       <div class="form-group">
         <label for="name">Device Name</label>

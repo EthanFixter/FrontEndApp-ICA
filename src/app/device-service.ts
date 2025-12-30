@@ -11,6 +11,7 @@ export type ListDevicesOutput = {
 };
 
 export type AddDeviceInput = {
+  readonly id?: string;
   readonly name: string;
   readonly description: string;
   readonly totalQuantity: number;

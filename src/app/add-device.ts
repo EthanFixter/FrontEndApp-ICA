@@ -6,6 +6,7 @@ export type AddDeviceResult =
 
 // Command used by the application layer (decoupled from service DTOs)
 export type AddDeviceCommand = {
+  readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly totalQuantity: number;

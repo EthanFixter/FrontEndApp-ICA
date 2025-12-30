@@ -151,7 +151,7 @@ type AddDeviceRequestDto = {
 // ✅ Updated mapper to include id if present
 function toAddDeviceRequestDto(input: AddDeviceInput): AddDeviceRequestDto {
   return {
-    id: (input as any).id, // optional, only if provided
+    id: input.id,
     name: input.name,
     description: input.description,
     totalQuantity: input.totalQuantity,
