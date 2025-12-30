@@ -47,7 +47,10 @@ const handleCancel = () => {
   <section class="reservations-page">
     <header class="page-header">
       <h2>Reservations</h2>
+
+      <!-- 🔒 Only show when logged in -->
       <button
+        v-if="isAuthenticated"
         class="btn btn-primary"
         @click="showAddForm = !showAddForm"
         :disabled="isSubmitting"
@@ -56,7 +59,8 @@ const handleCancel = () => {
       </button>
     </header>
 
-    <div v-if="showAddForm" class="form-container">
+    <!-- 🔒 Only show form when logged in -->
+    <div v-if="showAddForm && isAuthenticated" class="form-container">
       <AddReservationForm
         :isSubmitting="isSubmitting"
         :error="error"
@@ -85,34 +89,3 @@ const handleCancel = () => {
     </footer>
   </section>
 </template>
-
-<style scoped>
-.reservations-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.form-container {
-  margin-bottom: 1rem;
-}
-
-.reservations-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.loading,
-.error,
-.empty {
-  text-align: center;
-  padding: 1rem;
-  font-size: 1.1rem;
-}
-</style>
