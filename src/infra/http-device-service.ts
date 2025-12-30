@@ -47,7 +47,7 @@ export class HttpDeviceService implements DeviceService {
   }
 
   async listDevices(): Promise<ListDevicesOutput> {
-    const res = await this.http(this.url('/devices/upsert'), {
+    const res = await this.http(this.url('/devices'), {
       method: 'GET',
       headers: this.mergeHeaders({ Accept: 'application/json' }),
     });
@@ -77,7 +77,7 @@ export class HttpDeviceService implements DeviceService {
 
   async addDevice(input: AddDeviceInput): Promise<AddDeviceOutput> {
     const dto = toAddDeviceRequestDto(input);
-    const res = await this.http(this.url('api/devices'), {
+    const res = await this.http(this.url('/devices/upsert'), {
       method: 'POST',
       headers: this.mergeHeaders({
         Accept: 'application/json',
